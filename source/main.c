@@ -507,17 +507,8 @@ static void registerSpecialChars(void)
 // Simple Hello World drawing function
 static void drawHelloWorld(void)
 {
-	// Clear screen with black background
-	tiny3d_Clear(0xff000000, TINY3D_CLEAR_ALL);
-	
-	// Enable alpha blending for text rendering
-	tiny3d_AlphaTest(1, 0x10, TINY3D_ALPHA_FUNC_GEQUAL);
-	tiny3d_BlendFunc(1, TINY3D_BLEND_FUNC_SRC_RGB_SRC_ALPHA | TINY3D_BLEND_FUNC_SRC_ALPHA_SRC_ALPHA,
-		TINY3D_BLEND_FUNC_SRC_ALPHA_ONE_MINUS_SRC_ALPHA | TINY3D_BLEND_FUNC_SRC_RGB_ONE_MINUS_SRC_ALPHA,
-		TINY3D_BLEND_RGB_FUNC_ADD | TINY3D_BLEND_ALPHA_FUNC_ADD);
-	
-	// Set 2D projection
-	tiny3d_Project2D();
+	// Draw background
+	DrawBackground2D(0xff000000); // Black background
 	
 	// Set font properties
 	SetFontSize(APP_FONT_SIZE_TITLE);
@@ -584,6 +575,19 @@ s32 main(s32 argc, const char* argv[])
 	// Main loop - Hello World version
 	while (!close_app)
 	{       
+		tiny3d_Clear(0xff000000, TINY3D_CLEAR_ALL);
+
+		// Enable alpha Test
+		tiny3d_AlphaTest(1, 0x10, TINY3D_ALPHA_FUNC_GEQUAL);
+
+		// Enable alpha blending.
+		tiny3d_BlendFunc(1, TINY3D_BLEND_FUNC_SRC_RGB_SRC_ALPHA | TINY3D_BLEND_FUNC_SRC_ALPHA_SRC_ALPHA,
+			TINY3D_BLEND_FUNC_SRC_ALPHA_ONE_MINUS_SRC_ALPHA | TINY3D_BLEND_FUNC_SRC_RGB_ONE_MINUS_SRC_ALPHA,
+			TINY3D_BLEND_RGB_FUNC_ADD | TINY3D_BLEND_ALPHA_FUNC_ADD);
+		
+		// change to 2D context (remember you it works with 848 x 512 as virtual coordinates)
+		tiny3d_Project2D();
+
 		// Draw Hello World screen
 		drawHelloWorld();
 		
