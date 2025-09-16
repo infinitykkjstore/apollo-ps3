@@ -524,22 +524,6 @@ static void drawHelloWorld(void)
 	
 	// Draw jars (same as Apollo)
 	drawJars(0xFF);
-	
-	// Set font properties for Hello World text
-	SetFontSize(APP_FONT_SIZE_TITLE);
-	SetCurrentFont(font_adonais_regular);
-	SetFontAlign(FONT_ALIGN_SCREEN_CENTER);
-	SetFontColor(APP_FONT_COLOR, 0);
-	
-	// Draw "Hello World" text below the logo
-	DrawString(0, 320, "Hello World!");
-	
-	// Draw instruction text below
-	SetFontSize(APP_FONT_SIZE_SUBTITLE);
-	DrawString(0, 360, "Press X to Exit");
-	
-	// Reset font alignment
-	SetFontAlign(FONT_ALIGN_LEFT);
 }
 
 /*
@@ -606,6 +590,18 @@ s32 main(s32 argc, const char* argv[])
 
 		// Draw Hello World screen
 		drawHelloWorld();
+		
+		// Draw Hello World text (same way Apollo draws help text)
+		SetFontSize(APP_FONT_SIZE_TITLE);
+		SetCurrentFont(font_adonais_regular);
+		SetFontAlign(FONT_ALIGN_SCREEN_CENTER);
+		SetFontColor(APP_FONT_COLOR, 0);
+		DrawString(0, 320, "Hello World!");
+		
+		// Draw instruction text
+		SetFontSize(APP_FONT_SIZE_SUBTITLE);
+		DrawString(0, 360, "Press X to Exit");
+		SetFontAlign(FONT_ALIGN_LEFT);
 		
 		// Handle controller input
 		readPad(0);
