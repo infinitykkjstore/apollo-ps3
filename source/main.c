@@ -507,21 +507,36 @@ static void registerSpecialChars(void)
 // Simple Hello World drawing function
 static void drawHelloWorld(void)
 {
-	// Draw background
-	DrawBackground2D(0xff000000); // Black background
+	// Draw background (same as Apollo)
+	DrawBackground2D(0xFFFFFFFF);
 	
-	// Set font properties
+	// Draw background texture (same as Apollo)
+	DrawBackgroundTexture(0, 0xFF);
+	
+	// Draw Apollo logo (same as Apollo)
+	DrawTexture(&menu_textures[logo_png_index], logo_png_x, logo_png_y, 0, logo_png_w, logo_png_h, 0xFFFFFFFF);
+	
+	// Draw Apollo description texture (same as Apollo)
+	DrawTextureCenteredX(&menu_textures[logo_text_png_index], 424, 250, 0, 306, 50, 0xFFFFFF00 | 0xFF);
+	
+	// Draw columns (same as Apollo)
+	drawColumns(0xFF);
+	
+	// Draw jars (same as Apollo)
+	drawJars(0xFF);
+	
+	// Set font properties for Hello World text
 	SetFontSize(APP_FONT_SIZE_TITLE);
 	SetCurrentFont(font_adonais_regular);
 	SetFontAlign(FONT_ALIGN_SCREEN_CENTER);
 	SetFontColor(APP_FONT_COLOR, 0);
 	
-	// Draw "Hello World" text in the center of the screen
-	DrawString(0, 200, "Hello World!");
+	// Draw "Hello World" text below the logo
+	DrawString(0, 320, "Hello World!");
 	
 	// Draw instruction text below
 	SetFontSize(APP_FONT_SIZE_SUBTITLE);
-	DrawString(0, 250, "Press X to Exit");
+	DrawString(0, 360, "Press X to Exit");
 	
 	// Reset font alignment
 	SetFontAlign(FONT_ALIGN_LEFT);
@@ -575,6 +590,7 @@ s32 main(s32 argc, const char* argv[])
 	// Main loop - Hello World version
 	while (!close_app)
 	{       
+		// Clear screen
 		tiny3d_Clear(0xff000000, TINY3D_CLEAR_ALL);
 
 		// Enable alpha Test
