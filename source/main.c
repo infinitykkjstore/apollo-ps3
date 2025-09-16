@@ -409,7 +409,7 @@ static void drawSimpleBackground(void)
 }
 
 /*
-	Program start - Hello World Version
+	Program start
 */
 s32 main(s32 argc, const char* argv[])
 {
@@ -430,13 +430,11 @@ s32 main(s32 argc, const char* argv[])
 	sysModuleLoad(SYSMODULE_PNGDEC);
 	sysModuleLoad(SYSMODULE_JPGDEC);
 
-	// Register exit callback
+	// register exit callback
 	if(sysUtilRegisterCallback(SYSUTIL_EVENT_SLOT0, sys_callback, NULL)==0) inited |= INITED_CALLBACK;
 	
-	// Load textures and fonts
+	// Load texture
 	LoadTextures_Menu();
-
-	// Load sounds
 	LoadSounds();
 
 	// Unpack application data on first run
@@ -458,20 +456,16 @@ s32 main(s32 argc, const char* argv[])
 	// Set PFD keys from loaded settings
 	pfd_util_setup_keys();
 
-	// Setup font system
+	// Setup font
 	SetExtraSpace(5);
 	SetCurrentFont(font_adonais_regular);
 
-	// Register special characters
 	registerSpecialChars();
-
-	// Initialize menu options
 	initMenuOptions();
 
 	// Show welcome dialog
 	show_message("Welcome to Apollo Save Tool!\n\nThis is a template message.\nPress OK to continue.");
-
-	// Main loop
+	
 	while (!close_app)
 	{       
 		tiny3d_Clear(0xff000000, TINY3D_CLEAR_ALL);
@@ -484,11 +478,12 @@ s32 main(s32 argc, const char* argv[])
 			TINY3D_BLEND_FUNC_SRC_ALPHA_ONE_MINUS_SRC_ALPHA | TINY3D_BLEND_FUNC_SRC_RGB_ONE_MINUS_SRC_ALPHA,
 			TINY3D_BLEND_RGB_FUNC_ADD | TINY3D_BLEND_ALPHA_FUNC_ADD);
 		
-		// change to 2D context
+		// change to 2D context (remember you it works with 848 x 512 as virtual coordinates)
 		tiny3d_Project2D();
 
 		// Draw simple background
-		drawSimpleBackground();
+		DrawBackground2D(0xFFFFFFFF);
+		DrawBackgroundTexture(0, 0xFF);
 		
 		// Test text rendering
 		SetFontSize(APP_FONT_SIZE_TITLE);
@@ -497,8 +492,25 @@ s32 main(s32 argc, const char* argv[])
 		SetFontColor(APP_FONT_COLOR, 0);
 		DrawString(0, 200, "Test Text");
 		SetFontAlign(FONT_ALIGN_LEFT);
-		
-		// Handle controller input
+
+		//Draw help
+		if (menu_pad_help[menu_id])
+		{
+			u8 alpha = 0xFF;
+			if (idle_time > 80)
+			{
+				int dec = (idle_time - 80) * 4;
+				alpha = (dec > alpha) ? 0 : (alpha - dec);
+			}
+			
+			SetFontSize(APP_FONT_SIZE_DESCRIPTION);
+			SetCurrentFont(font_adonais_regular);
+			SetFontAlign(FONT_ALIGN_SCREEN_CENTER);
+			SetFontColor(APP_FONT_COLOR, alpha);
+			DrawString(0, 480, menu_pad_help[menu_id]);
+			SetFontAlign(FONT_ALIGN_LEFT);
+		}
+
 		readPad(0);
 		
 		// Check if X button is pressed to exit
@@ -506,8 +518,7 @@ s32 main(s32 argc, const char* argv[])
 		{
 			close_app = 1;
 		}
-		
-		// Update display
+
 		tiny3d_Flip();
 	}
 
