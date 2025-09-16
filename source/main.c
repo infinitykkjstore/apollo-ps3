@@ -1,5 +1,6 @@
 /* 
-	Apollo PS3 main.c
+	Hello World PS3 Homebrew
+	Baseado na infraestrutura do Apollo Save Tool
 */
 
 #include <sys/spu.h>
@@ -60,21 +61,15 @@ static sysSpuImage spu_image;
 	   LoadTexture_##type(name##_##type##_index); \
 	})
 
-void update_usb_path(char *p);
-void update_hdd_path(char *p);
-void update_trophy_path(char *p);
-void update_db_path(char *p);
-void update_vmc_path(char *p);
-
 app_config_t apollo_config = {
-    .app_name = "APOLLO",
-    .app_ver = APOLLO_VERSION,
-    .save_db = ONLINE_URL,
+    .app_name = "HELLO",
+    .app_ver = "1.0.0",
+    .save_db = "",
     .ftp_url = "",
-    .music = 1,
-    .doSort = 1,
-    .doAni = 1,
-    .update = 1,
+    .music = 0,  // Desabilitar música para simplificar
+    .doSort = 0,
+    .doAni = 0,
+    .update = 0,
     .usb_dev = (MAX_USB_DEVICES+1),
     .online_opt = 0,
     .dbglog = 0,
@@ -88,112 +83,6 @@ int close_app = 0;
 int idle_time = 0;                          // Set by readPad
 
 png_texture * menu_textures;                // png_texture array for main menu, initialized in LoadTexture
-
-const char * menu_pad_help[TOTAL_MENU_IDS] = { NULL,												//Main
-								"\x10 Select    \x13 Back    \x12 Details    \x11 Refresh",			//Trophy list
-								"\x10 Select    \x13 Back    \x12 Details    \x11 Refresh",			//USB list
-								"\x10 Select    \x13 Back    \x12 Details    \x11 Refresh",			//HDD list
-								"\x10 Select    \x13 Back    \x12 Details    \x11 Refresh",			//Online list
-								"\x10 Select    \x13 Back    \x11 Refresh",							//User backup
-								"\x10 Select    \x13 Back",											//Options
-								"\x13 Back",														//About
-								"\x10 Select    \x12 View Code    \x13 Back",						//Select Cheats
-								"\x13 Back",														//View Cheat
-								"\x10 Select    \x13 Back",											//Cheat Option
-								"\x13 Back",														//View Details
-								"\x10 Value Up  \x11 Value Down   \x13 Exit",						//Hex Editor
-								};
-
-/*
-* HDD save list
-*/
-save_list_t hdd_saves = {
-    .id = MENU_HDD_SAVES,
-    .title = "HDD Saves",
-    .list = NULL,
-    .path = "",
-    .ReadList = &ReadUserList,
-    .ReadCodes = &ReadCodes,
-    .UpdatePath = &update_hdd_path,
-};
-
-/*
-* USB save list
-*/
-save_list_t usb_saves = {
-    .id = MENU_USB_SAVES,
-    .title = "USB Saves",
-    .list = NULL,
-    .path = "",
-    .ReadList = &ReadUsbList,
-    .ReadCodes = &ReadCodes,
-    .UpdatePath = &update_usb_path,
-};
-
-/*
-* Trophy list
-*/
-save_list_t trophies = {
-    .id = MENU_TROPHIES,
-    .title = "Trophies",
-    .list = NULL,
-    .path = "",
-    .ReadList = &ReadTrophyList,
-    .ReadCodes = &ReadTrophies,
-    .UpdatePath = &update_trophy_path,
-};
-
-/*
-* Online code list
-*/
-save_list_t online_saves = {
-    .id = MENU_ONLINE_DB,
-    .title = "Online Database",
-    .list = NULL,
-    .path = ONLINE_URL,
-    .ReadList = &ReadOnlineList,
-    .ReadCodes = &ReadOnlineSaves,
-    .UpdatePath = &update_db_path,
-};
-
-/*
-* User Backup code list
-*/
-save_list_t user_backup = {
-    .id = MENU_USER_BACKUP,
-    .title = "User Tools",
-    .list = NULL,
-    .path = "",
-    .ReadList = &ReadBackupList,
-    .ReadCodes = &ReadBackupCodes,
-    .UpdatePath = NULL,
-};
-
-/*
-* PS1 VMC list
-*/
-save_list_t vmc1_saves = {
-    .id = MENU_PS1VMC_SAVES,
-    .title = "PS1 Virtual Memory Card",
-    .list = NULL,
-    .path = "",
-    .ReadList = &ReadVmc1List,
-    .ReadCodes = &ReadVmc1Codes,
-    .UpdatePath = &update_vmc_path,
-};
-
-/*
-* PS2 VMC list
-*/
-save_list_t vmc2_saves = {
-    .id = MENU_PS2VMC_SAVES,
-    .title = "PS2 Virtual Memory Card",
-    .list = NULL,
-    .path = "",
-    .ReadList = &ReadVmc2List,
-    .ReadCodes = &ReadVmc2Codes,
-    .UpdatePath = &update_vmc_path,
-};
 
 static void release_all(void)
 {	
@@ -253,16 +142,10 @@ static void LoadTexture_jpg(int idx)
 	copyTexture(idx);
 }
 
-static void LoadImageFontTexture(const u8* rawData, uint16_t unicode, int idx)
-{
-	menu_textures[idx].size = LoadImageFontEntry(rawData, unicode, &menu_textures[idx].texture);
-	copyTexture(idx);
-}
-
-// Used only in initialization. Allocates 64 mb for textures and loads the font
+// Versão simplificada do LoadTextures_Menu - apenas carrega o essencial
 static void LoadTextures_Menu(void)
 {
-	texture_mem = tiny3d_AllocTexture(64*1024*1024); // alloc 64MB of space for textures (this pointer can be global)
+	texture_mem = tiny3d_AllocTexture(64*1024*1024); // alloc 64MB of space for textures
 	menu_textures = (png_texture *)calloc(TOTAL_MENU_TEXTURES, sizeof(png_texture));
 	
 	if(!texture_mem || !menu_textures)
@@ -281,255 +164,51 @@ static void LoadTextures_Menu(void)
 	free_mem = (u32*) init_ttf_table((u16*) free_mem);
 	
 	set_ttf_window(0, 0, 848, 512, WIN_SKIP_LF);
-//	TTFUnloadFont();
 
-	//Init Main Menu textures
+	// Carregar apenas texturas essenciais para Hello World
 	load_menu_texture(leon_luna, jpg);
 	load_menu_texture(bgimg, jpg);
-	load_menu_texture(cheat, png);
-
-	load_menu_texture(circle_loading_bg, png);
-	load_menu_texture(circle_loading_seek, png);
-	load_menu_texture(edit_shadow, png);
-
-	load_menu_texture(footer_ico_circle, png);
-	load_menu_texture(footer_ico_cross, png);
-	load_menu_texture(footer_ico_square, png);
-	load_menu_texture(footer_ico_triangle, png);
-	load_menu_texture(header_dot, png);
-	load_menu_texture(header_line, png);
-
-	load_menu_texture(mark_arrow, png);
-	load_menu_texture(mark_line, png);
-	load_menu_texture(opt_off, png);
-	load_menu_texture(opt_on, png);
-	load_menu_texture(scroll_bg, png);
-	load_menu_texture(scroll_lock, png);
-	load_menu_texture(help, png);
-	load_menu_texture(buk_scr, png);
-	load_menu_texture(cat_about, png);
-	load_menu_texture(cat_cheats, png);
-	load_menu_texture(cat_opt, png);
-	load_menu_texture(cat_usb, png);
-	load_menu_texture(cat_bup, png);
-	load_menu_texture(cat_db, png);
-	load_menu_texture(cat_hdd, png);
-	load_menu_texture(cat_sav, png);
-	load_menu_texture(cat_warning, png);
-	load_menu_texture(column_1, png);
-	load_menu_texture(column_2, png);
-	load_menu_texture(column_3, png);
-	load_menu_texture(column_4, png);
-	load_menu_texture(column_5, png);
-	load_menu_texture(column_6, png);
-	load_menu_texture(column_7, png);
-	load_menu_texture(jar_about, png);
-	load_menu_texture(jar_about_hover, png);
-	load_menu_texture(jar_bup, png);
-	load_menu_texture(jar_bup_hover, png);
-	load_menu_texture(jar_db, png);
-	load_menu_texture(jar_db_hover, png);
-	load_menu_texture(jar_trophy, png);
-	load_menu_texture(jar_trophy_hover, png);
-	load_menu_texture(jar_hdd, png);
-	load_menu_texture(jar_hdd_hover, png);
-	load_menu_texture(jar_opt, png);
-	load_menu_texture(jar_opt_hover, png);
-	load_menu_texture(jar_usb, png);
-	load_menu_texture(jar_usb_hover, png);
-	load_menu_texture(logo, png);
-	load_menu_texture(logo_text, png);
-	load_menu_texture(tag_lock, png);
-	load_menu_texture(tag_own, png);
-	load_menu_texture(tag_vmc, png);
-	load_menu_texture(tag_ps1, png);
-	load_menu_texture(tag_ps2, png);
-	load_menu_texture(tag_ps3, png);
-	load_menu_texture(tag_psp, png);
-	load_menu_texture(tag_psv, png);
-	load_menu_texture(tag_warning, png);
-	load_menu_texture(tag_net, png);
-	load_menu_texture(tag_zip, png);
-	load_menu_texture(tag_apply, png);
-	load_menu_texture(tag_transfer, png);
-
-	u8* imagefont;
-	if (read_buffer("/dev_flash/vsh/resource/imagefont.bin", &imagefont, NULL) == SUCCESS)
-	{
-		LoadImageFontTexture(imagefont, 0xF888, footer_ico_lt_png_index);
-		LoadImageFontTexture(imagefont, 0xF88B, footer_ico_rt_png_index);
-		LoadImageFontTexture(imagefont, 0xF6AD, trp_sync_img_index);
-		LoadImageFontTexture(imagefont, 0xF8AC, trp_bronze_img_index);
-		LoadImageFontTexture(imagefont, 0xF8AD, trp_silver_img_index);
-		LoadImageFontTexture(imagefont, 0xF8AE, trp_gold_img_index);
-		LoadImageFontTexture(imagefont, 0xF8AF, trp_platinum_img_index);
-
-		free(imagefont);
-	}
-
-	menu_textures[icon_png_file_index].buffer = free_mem;
-	menu_textures[icon_png_file_index].size = 1;
-	menu_textures[icon_png_file_index].texture.height = 176;
-	menu_textures[icon_png_file_index].texture.pitch = (320*4);
-	menu_textures[icon_png_file_index].texture.bmp_out = calloc(320 * 176, sizeof(u32));
-
-	copyTexture(icon_png_file_index);
-	free_mem = (u32*) menu_textures[icon_png_file_index].buffer;
 
 	u32 tBytes = free_mem - texture_mem;
 	LOG("LoadTextures_Menu() :: Allocated %db (%.02fkb, %.02fmb) for textures", tBytes, tBytes / (float)1024, tBytes / (float)(1024 * 1024));
 }
 
-static void xmp_audio_callback(int voice)
+// Função para desenhar o Hello World
+static void DrawHelloWorld(void)
 {
-	static int music_buffer = 0;
-
-	music_buffer ^= 1;
-	xmp_play_buffer(xmp, background_music[music_buffer], AUDIO_SAMPLES, 0);
-	SND_AddVoice(voice, background_music[music_buffer], AUDIO_SAMPLES);
-}
-
-static void LoadSounds(void)
-{
-	//Initialize SPU
-	u32 entry = 0;
-	u32 segmentcount = 0;
-	sysSpuSegment* segments;
+	// Desenhar background
+	DrawBackground2D(0xFF000000); // Fundo preto
 	
-	sysSpuInitialize(6, 5);
-	sysSpuRawCreate(&spu, NULL);
-	sysSpuElfGetInformation(spu_soundmodule_bin, &entry, &segmentcount);
+	// Desenhar logo de fundo (opcional)
+	if (menu_textures[leon_luna_jpg_index].texture_off)
+	{
+		DrawTexture(&menu_textures[leon_luna_jpg_index], 0, 0, 0, 848, 512, 0x80FFFFFF);
+	}
 	
-	size_t segmentsize = sizeof(sysSpuSegment) * segmentcount;
-	segments = (sysSpuSegment*)memalign(128, SPU_SIZE(segmentsize)); // must be aligned to 128 or it break malloc() allocations
-	memset(segments, 0, segmentsize);
-
-	sysSpuElfGetSegments(spu_soundmodule_bin, segments, segmentcount);
-	sysSpuImageImport(&spu_image, spu_soundmodule_bin, 0);
-	sysSpuRawImageLoad(spu, &spu_image);
+	// Configurar fonte
+	SetFontSize(APP_FONT_SIZE_TITLE);
+	SetCurrentFont(font_adonais_regular);
+	SetFontAlign(FONT_ALIGN_SCREEN_CENTER);
+	SetFontColor(APP_FONT_COLOR, 0);
 	
-	inited |= INITED_SPU;
-	if(SND_Init(spu)==0)
-		inited |= INITED_SOUNDLIB;
+	// Desenhar texto principal
+	DrawString(0, 200, "Hello World!");
 	
-	// decode the mp3 effect file included to memory. It stops by EOF or when samples exceed size_effects_samples
-	xmp = xmp_create_context();
-
-	// Decode a s3m file to play
-	if (xmp_load_module_from_memory(xmp, (void*) haiku_s3m, haiku_s3m_size) < 0)
-	{
-		LOG("[ERROR] Failed to decode audio file");
-		return;
-	}
-
-	xmp_set_player(xmp, XMP_PLAYER_VOLUME, 100);
-	xmp_set_player(xmp, XMP_PLAYER_INTERP, XMP_INTERP_SPLINE);
-	xmp_start_player(xmp, SAMPLING_FREQ, 0);
-
-	// Calculate the sample count and allocate a buffer for the sample data accordingly
-	// adjust the sound buffer sample correctly to the background_music_size
-	// SPU dma works aligned to 128 bytes. SPU module is designed to read unaligned buffers and it is better thing aligned buffers)
-	background_music[0] = (short *)memalign(128, SPU_SIZE(AUDIO_SAMPLES));
-	background_music[1] = (short *)memalign(128, SPU_SIZE(AUDIO_SAMPLES));
-
-	// Decode the audio into pSampleData
-	if (xmp_play_buffer(xmp, background_music[0], AUDIO_SAMPLES, 0) == SUCCESS)
-		inited |= INITED_AUDIOPLAYER;
-
-	SND_Pause(1);
-}
-
-void update_usb_path(char* path)
-{
-	if (apollo_config.usb_dev < MAX_USB_DEVICES)
-	{
-		sprintf(path, USB_PATH, apollo_config.usb_dev);
-		return;
-	}
-
-	if (apollo_config.usb_dev == MAX_USB_DEVICES)
-	{
-		sprintf(path, FAKE_USB_PATH);
-		return;
-	}
-
-	for (int i = 0; i < MAX_USB_DEVICES; i++)
-	{
-		sprintf(path, USB_PATH, i);
-
-		if (dir_exists(path) == SUCCESS)
-			return;
-	}
-
-	sprintf(path, FAKE_USB_PATH);
-	if (dir_exists(path) == SUCCESS)
-		return;
-
-	path[0] = 0;
-}
-
-void update_hdd_path(char* path)
-{
-	sprintf(path, USER_PATH_HDD, apollo_config.user_id);
-}
-
-void update_trophy_path(char* path)
-{
-	sprintf(path, TROPHY_PATH_HDD, apollo_config.user_id);
-}
-
-void update_db_path(char* path)
-{
-	if (apollo_config.online_opt)
-	{
-		sprintf(path, "%s%016lX/", apollo_config.ftp_url, apollo_config.account_id);
-		return;
-	}
-
-	strcpy(path, apollo_config.save_db);
-}
-
-void update_vmc_path(char* path)
-{
-	if (file_exists(path) == SUCCESS)
-		return;
-
-	path[0] = 0;
-}
-
-static void registerSpecialChars(void)
-{
-	// Register save tags
-	RegisterSpecialCharacter(CHAR_TAG_PS1, 2, 1.5, &menu_textures[tag_ps1_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_PS2, 2, 1.5, &menu_textures[tag_ps2_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_PS3, 2, 1.5, &menu_textures[tag_ps3_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_PSP, 2, 1.5, &menu_textures[tag_psp_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_PSV, 2, 1.5, &menu_textures[tag_psv_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_VMC, 2, 1.0, &menu_textures[tag_vmc_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_LOCKED, 0, 1.5, &menu_textures[tag_lock_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_OWNER, 0, 1.5, &menu_textures[tag_own_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_WARNING, 0, 1.5, &menu_textures[tag_warning_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_APPLY, 2, 1.1, &menu_textures[tag_apply_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_ZIP, 0, 1.2, &menu_textures[tag_zip_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_TRANSFER, 0, 1.2, &menu_textures[tag_transfer_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_NET, 1, 1.2, &menu_textures[tag_net_png_index]);
-
-	// Register button icons
-	RegisterSpecialCharacter(ps3PadCrossOk() ? CHAR_BTN_X : CHAR_BTN_O, 0, 1.2, &menu_textures[footer_ico_cross_png_index]);
-	RegisterSpecialCharacter(CHAR_BTN_S, 0, 1.2, &menu_textures[footer_ico_square_png_index]);
-	RegisterSpecialCharacter(CHAR_BTN_T, 0, 1.2, &menu_textures[footer_ico_triangle_png_index]);
-	RegisterSpecialCharacter(ps3PadCrossOk() ? CHAR_BTN_O : CHAR_BTN_X, 0, 1.2, &menu_textures[footer_ico_circle_png_index]);
-
-	// Register trophy icons
-	RegisterSpecialCharacter(CHAR_TRP_BRONZE, 2, 1.0, &menu_textures[trp_bronze_img_index]);
-	RegisterSpecialCharacter(CHAR_TRP_SILVER, 2, 1.0, &menu_textures[trp_silver_img_index]);
-	RegisterSpecialCharacter(CHAR_TRP_GOLD, 2, 1.0, &menu_textures[trp_gold_img_index]);
-	RegisterSpecialCharacter(CHAR_TRP_PLATINUM, 0, 1.2, &menu_textures[trp_platinum_img_index]);
-	RegisterSpecialCharacter(CHAR_TRP_SYNC, 0, 1.2, &menu_textures[trp_sync_img_index]);
+	// Desenhar texto secundário
+	SetFontSize(APP_FONT_SIZE_SUBTITLE);
+	DrawString(0, 250, "PS3 Homebrew Development");
+	
+	// Desenhar instruções
+	SetFontSize(APP_FONT_SIZE_DESCRIPTION);
+	SetFontColor(0xFF00FF00, 0); // Verde
+	DrawString(0, 350, "Press X to Exit");
+	
+	// Resetar alinhamento
+	SetFontAlign(FONT_ALIGN_LEFT);
 }
 
 /*
-	Program start
+	Program start - Hello World PS3
 */
 s32 main(s32 argc, const char* argv[])
 {
@@ -555,48 +234,14 @@ s32 main(s32 argc, const char* argv[])
 	
 	// Load texture
 	LoadTextures_Menu();
-	LoadSounds();
-
-	// Unpack application data on first run
-	if (file_exists(APOLLO_LOCAL_CACHE "appdata.zip") == SUCCESS)
-	{
-		clean_directory(APOLLO_DATA_PATH, "");
-		unzip_app_data(APOLLO_LOCAL_CACHE "appdata.zip");
-	}
-
-	// Splash screen logo (fade-in)
-	drawSplashLogo(1);
-
-	// Load application settings
-	load_app_settings(&apollo_config);
-
-	mkdirs(APOLLO_TMP_PATH);
-	if (apollo_config.dbglog)
-		dbglogger_init_mode(FILE_LOGGER, "/dev_hdd0/tmp/apollo.log", 0);
-
-	save_xml_owner(APOLLO_PATH OWNER_XML_FILE);
-
-	// Set PFD keys from loaded settings
-	pfd_util_setup_keys();
 
 	// Setup font
 	SetExtraSpace(5);
 	SetCurrentFont(font_adonais_regular);
 
-	registerSpecialChars();
-	initMenuOptions();
-
-	// Splash screen logo (fade-out)
-	drawSplashLogo(-1);
-
-	SND_SetVoice(2, VOICE_STEREO_16BIT, SAMPLING_FREQ, 0, background_music[0], AUDIO_SAMPLES, MAX_VOLUME, MAX_VOLUME, xmp_audio_callback);
-	SND_Pause(!apollo_config.music);
+	LOG("Hello World PS3 Homebrew Started!");
 	
-	//Set options
-	update_callback(!apollo_config.update);
-
-	Draw_MainMenu_Ani();
-	
+	// Loop principal simplificado
 	while (!close_app)
 	{       
 		tiny3d_Clear(0xff000000, TINY3D_CLEAR_ALL);
@@ -612,32 +257,24 @@ s32 main(s32 argc, const char* argv[])
 		// change to 2D context (remember you it works with 848 x 512 as virtual coordinates)
 		tiny3d_Project2D();
 
-		drawScene();
+		// Desenhar Hello World
+		DrawHelloWorld();
 
-		//Draw help
-		if (menu_pad_help[menu_id])
+		// Ler input do controle
+		readPad(0);
+		
+		// Verificar se X foi pressionado para sair
+		if (paddata[0].BTN_CROSS)
 		{
-			u8 alpha = 0xFF;
-			if (idle_time > 80)
-			{
-				int dec = (idle_time - 80) * 4;
-				alpha = (dec > alpha) ? 0 : (alpha - dec);
-			}
-			
-			SetFontSize(APP_FONT_SIZE_DESCRIPTION);
-			SetCurrentFont(font_adonais_regular);
-			SetFontAlign(FONT_ALIGN_SCREEN_CENTER);
-			SetFontColor(APP_FONT_COLOR | alpha, 0);
-			DrawString(0, 470, (char *)menu_pad_help[menu_id]);
-			SetFontAlign(FONT_ALIGN_LEFT);
+			LOG("X button pressed - exiting...");
+			close_app = 1;
 		}
 		
 		tiny3d_Flip();
 	}
 
 	release_all();
-	if (file_exists("/dev_hdd0/mms/db.err") == SUCCESS)
-		sys_reboot();
+	LOG("Hello World PS3 Homebrew Exited!");
 
 	return 0;
 }
