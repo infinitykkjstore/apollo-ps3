@@ -23,9 +23,6 @@
 //Pad
 #include <io/pad.h>
 
-//Dialog
-#include "dialog.h"
-
 //Font
 #include "libfont.h"
 #include "ttf_render.h"
