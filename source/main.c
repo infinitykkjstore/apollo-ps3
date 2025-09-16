@@ -290,6 +290,16 @@ static void LoadTextures_Menu(void)
 
 	//Load only background image
 	load_menu_texture(bgimg, jpg);
+	
+	// Initialize icon texture buffer
+	menu_textures[icon_png_file_index].buffer = free_mem;
+	menu_textures[icon_png_file_index].size = 1;
+	menu_textures[icon_png_file_index].texture.height = 176;
+	menu_textures[icon_png_file_index].texture.pitch = (320*4);
+	menu_textures[icon_png_file_index].texture.bmp_out = calloc(320 * 176, sizeof(u32));
+
+	copyTexture(icon_png_file_index);
+	free_mem = (u32*) menu_textures[icon_png_file_index].buffer;
 
 	u32 tBytes = free_mem - texture_mem;
 	LOG("LoadTextures_Menu() :: Allocated %db (%.02fkb, %.02fmb) for textures", tBytes, tBytes / (float)1024, tBytes / (float)(1024 * 1024));
@@ -391,8 +401,10 @@ static void registerSpecialChars(void)
 // Simple background drawing function
 static void drawSimpleBackground(void)
 {
-	// Draw only background image (bgimg.jpg)
+	// Draw background (same as Apollo)
 	DrawBackground2D(0xFFFFFFFF);
+	
+	// Draw background texture (same as Apollo)
 	DrawBackgroundTexture(0, 0xFF);
 }
 
@@ -431,6 +443,25 @@ s32 main(s32 argc, const char* argv[])
 	// Load sounds (optional, but keeps compatibility)
 	LoadSounds();
 
+	// Unpack application data on first run
+	if (file_exists(APOLLO_LOCAL_CACHE "appdata.zip") == SUCCESS)
+	{
+		clean_directory(APOLLO_DATA_PATH, "");
+		unzip_app_data(APOLLO_LOCAL_CACHE "appdata.zip");
+	}
+
+	// Load application settings
+	load_app_settings(&apollo_config);
+
+	mkdirs(APOLLO_TMP_PATH);
+	if (apollo_config.dbglog)
+		dbglogger_init_mode(FILE_LOGGER, "/dev_hdd0/tmp/apollo.log", 0);
+
+	save_xml_owner(APOLLO_PATH OWNER_XML_FILE);
+
+	// Set PFD keys from loaded settings
+	pfd_util_setup_keys();
+
 	// Setup font system
 	SetExtraSpace(5);
 	SetCurrentFont(font_adonais_regular);
@@ -463,6 +494,14 @@ s32 main(s32 argc, const char* argv[])
 
 		// Draw simple background
 		drawSimpleBackground();
+		
+		// Test text rendering
+		SetFontSize(APP_FONT_SIZE_TITLE);
+		SetCurrentFont(font_adonais_regular);
+		SetFontAlign(FONT_ALIGN_SCREEN_CENTER);
+		SetFontColor(APP_FONT_COLOR, 0);
+		DrawString(0, 200, "Test Text");
+		SetFontAlign(FONT_ALIGN_LEFT);
 		
 		// Handle controller input
 		readPad(0);
