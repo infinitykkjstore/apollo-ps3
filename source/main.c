@@ -23,6 +23,9 @@
 //Pad
 #include <io/pad.h>
 
+//Dialog
+#include "dialog.h"
+
 //Font
 #include "libfont.h"
 #include "ttf_render.h"
@@ -288,98 +291,8 @@ static void LoadTextures_Menu(void)
 	
 	set_ttf_window(0, 0, 848, 512, WIN_SKIP_LF);
 
-	//Init Main Menu textures
-	load_menu_texture(leon_luna, jpg);
+	//Load only background image
 	load_menu_texture(bgimg, jpg);
-	load_menu_texture(cheat, png);
-
-	load_menu_texture(circle_loading_bg, png);
-	load_menu_texture(circle_loading_seek, png);
-	load_menu_texture(edit_shadow, png);
-
-	load_menu_texture(footer_ico_circle, png);
-	load_menu_texture(footer_ico_cross, png);
-	load_menu_texture(footer_ico_square, png);
-	load_menu_texture(footer_ico_triangle, png);
-	load_menu_texture(header_dot, png);
-	load_menu_texture(header_line, png);
-
-	load_menu_texture(mark_arrow, png);
-	load_menu_texture(mark_line, png);
-	load_menu_texture(opt_off, png);
-	load_menu_texture(opt_on, png);
-	load_menu_texture(scroll_bg, png);
-	load_menu_texture(scroll_lock, png);
-	load_menu_texture(help, png);
-	load_menu_texture(buk_scr, png);
-	load_menu_texture(cat_about, png);
-	load_menu_texture(cat_cheats, png);
-	load_menu_texture(cat_opt, png);
-	load_menu_texture(cat_usb, png);
-	load_menu_texture(cat_bup, png);
-	load_menu_texture(cat_db, png);
-	load_menu_texture(cat_hdd, png);
-	load_menu_texture(cat_sav, png);
-	load_menu_texture(cat_warning, png);
-	load_menu_texture(column_1, png);
-	load_menu_texture(column_2, png);
-	load_menu_texture(column_3, png);
-	load_menu_texture(column_4, png);
-	load_menu_texture(column_5, png);
-	load_menu_texture(column_6, png);
-	load_menu_texture(column_7, png);
-	load_menu_texture(jar_about, png);
-	load_menu_texture(jar_about_hover, png);
-	load_menu_texture(jar_bup, png);
-	load_menu_texture(jar_bup_hover, png);
-	load_menu_texture(jar_db, png);
-	load_menu_texture(jar_db_hover, png);
-	load_menu_texture(jar_trophy, png);
-	load_menu_texture(jar_trophy_hover, png);
-	load_menu_texture(jar_hdd, png);
-	load_menu_texture(jar_hdd_hover, png);
-	load_menu_texture(jar_opt, png);
-	load_menu_texture(jar_opt_hover, png);
-	load_menu_texture(jar_usb, png);
-	load_menu_texture(jar_usb_hover, png);
-	load_menu_texture(logo, png);
-	load_menu_texture(logo_text, png);
-	load_menu_texture(tag_lock, png);
-	load_menu_texture(tag_own, png);
-	load_menu_texture(tag_vmc, png);
-	load_menu_texture(tag_ps1, png);
-	load_menu_texture(tag_ps2, png);
-	load_menu_texture(tag_ps3, png);
-	load_menu_texture(tag_psp, png);
-	load_menu_texture(tag_psv, png);
-	load_menu_texture(tag_warning, png);
-	load_menu_texture(tag_net, png);
-	load_menu_texture(tag_zip, png);
-	load_menu_texture(tag_apply, png);
-	load_menu_texture(tag_transfer, png);
-
-	u8* imagefont;
-	if (read_buffer("/dev_flash/vsh/resource/imagefont.bin", &imagefont, NULL) == SUCCESS)
-	{
-		LoadImageFontTexture(imagefont, 0xF888, footer_ico_lt_png_index);
-		LoadImageFontTexture(imagefont, 0xF88B, footer_ico_rt_png_index);
-		LoadImageFontTexture(imagefont, 0xF6AD, trp_sync_img_index);
-		LoadImageFontTexture(imagefont, 0xF8AC, trp_bronze_img_index);
-		LoadImageFontTexture(imagefont, 0xF8AD, trp_silver_img_index);
-		LoadImageFontTexture(imagefont, 0xF8AE, trp_gold_img_index);
-		LoadImageFontTexture(imagefont, 0xF8AF, trp_platinum_img_index);
-
-		free(imagefont);
-	}
-
-	menu_textures[icon_png_file_index].buffer = free_mem;
-	menu_textures[icon_png_file_index].size = 1;
-	menu_textures[icon_png_file_index].texture.height = 176;
-	menu_textures[icon_png_file_index].texture.pitch = (320*4);
-	menu_textures[icon_png_file_index].texture.bmp_out = calloc(320 * 176, sizeof(u32));
-
-	copyTexture(icon_png_file_index);
-	free_mem = (u32*) menu_textures[icon_png_file_index].buffer;
 
 	u32 tBytes = free_mem - texture_mem;
 	LOG("LoadTextures_Menu() :: Allocated %db (%.02fkb, %.02fmb) for textures", tBytes, tBytes / (float)1024, tBytes / (float)(1024 * 1024));
@@ -475,55 +388,15 @@ void update_vmc_path(char* path)
 
 static void registerSpecialChars(void)
 {
-	// Register save tags
-	RegisterSpecialCharacter(CHAR_TAG_PS1, 2, 1.5, &menu_textures[tag_ps1_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_PS2, 2, 1.5, &menu_textures[tag_ps2_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_PS3, 2, 1.5, &menu_textures[tag_ps3_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_PSP, 2, 1.5, &menu_textures[tag_psp_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_PSV, 2, 1.5, &menu_textures[tag_psv_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_VMC, 2, 1.0, &menu_textures[tag_vmc_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_LOCKED, 0, 1.5, &menu_textures[tag_lock_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_OWNER, 0, 1.5, &menu_textures[tag_own_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_WARNING, 0, 1.5, &menu_textures[tag_warning_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_APPLY, 2, 1.1, &menu_textures[tag_apply_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_ZIP, 0, 1.2, &menu_textures[tag_zip_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_TRANSFER, 0, 1.2, &menu_textures[tag_transfer_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_NET, 1, 1.2, &menu_textures[tag_net_png_index]);
-
-	// Register button icons
-	RegisterSpecialCharacter(ps3PadCrossOk() ? CHAR_BTN_X : CHAR_BTN_O, 0, 1.2, &menu_textures[footer_ico_cross_png_index]);
-	RegisterSpecialCharacter(CHAR_BTN_S, 0, 1.2, &menu_textures[footer_ico_square_png_index]);
-	RegisterSpecialCharacter(CHAR_BTN_T, 0, 1.2, &menu_textures[footer_ico_triangle_png_index]);
-	RegisterSpecialCharacter(ps3PadCrossOk() ? CHAR_BTN_O : CHAR_BTN_X, 0, 1.2, &menu_textures[footer_ico_circle_png_index]);
-
-	// Register trophy icons
-	RegisterSpecialCharacter(CHAR_TRP_BRONZE, 2, 1.0, &menu_textures[trp_bronze_img_index]);
-	RegisterSpecialCharacter(CHAR_TRP_SILVER, 2, 1.0, &menu_textures[trp_silver_img_index]);
-	RegisterSpecialCharacter(CHAR_TRP_GOLD, 2, 1.0, &menu_textures[trp_gold_img_index]);
-	RegisterSpecialCharacter(CHAR_TRP_PLATINUM, 0, 1.2, &menu_textures[trp_platinum_img_index]);
-	RegisterSpecialCharacter(CHAR_TRP_SYNC, 0, 1.2, &menu_textures[trp_sync_img_index]);
+	// No special characters needed for simple background
 }
 
-// Simple Hello World drawing function
-static void drawHelloWorld(void)
+// Simple background drawing function
+static void drawSimpleBackground(void)
 {
-	// Draw background (same as Apollo)
+	// Draw only background image (bgimg.jpg)
 	DrawBackground2D(0xFFFFFFFF);
-	
-	// Draw background texture (same as Apollo)
 	DrawBackgroundTexture(0, 0xFF);
-	
-	// Draw Apollo logo (same as Apollo)
-	DrawTexture(&menu_textures[logo_png_index], logo_png_x, logo_png_y, 0, logo_png_w, logo_png_h, 0xFFFFFFFF);
-	
-	// Draw Apollo description texture (same as Apollo)
-	DrawTextureCenteredX(&menu_textures[logo_text_png_index], 424, 250, 0, 306, 50, 0xFFFFFF00 | 0xFF);
-	
-	// Draw columns (same as Apollo)
-	drawColumns(0xFF);
-	
-	// Draw jars (same as Apollo)
-	drawJars(0xFF);
 }
 
 /*
@@ -557,7 +430,7 @@ s32 main(s32 argc, const char* argv[])
 	
 	// Load textures and fonts (required for text rendering)
 	LoadTextures_Menu();
-	
+
 	// Load sounds (optional, but keeps compatibility)
 	LoadSounds();
 
@@ -571,7 +444,10 @@ s32 main(s32 argc, const char* argv[])
 	// Initialize menu options (required for some functions)
 	initMenuOptions();
 
-	// Main loop - Hello World version
+	// Show welcome dialog
+	show_message("Welcome to Apollo Save Tool!\n\nThis is a template message.\nPress OK to continue.");
+
+	// Main loop - Simple background only
 	while (!close_app)
 	{       
 		// Clear screen
@@ -588,20 +464,8 @@ s32 main(s32 argc, const char* argv[])
 		// change to 2D context (remember you it works with 848 x 512 as virtual coordinates)
 		tiny3d_Project2D();
 
-		// Draw Hello World screen
-		drawHelloWorld();
-		
-		// Draw Hello World text (same way Apollo draws help text)
-		SetFontSize(APP_FONT_SIZE_TITLE);
-		SetCurrentFont(font_adonais_regular);
-		SetFontAlign(FONT_ALIGN_SCREEN_CENTER);
-		SetFontColor(APP_FONT_COLOR, 0);
-		DrawString(0, 320, "Hello World!");
-		
-		// Draw instruction text
-		SetFontSize(APP_FONT_SIZE_SUBTITLE);
-		DrawString(0, 360, "Press X to Exit");
-		SetFontAlign(FONT_ALIGN_LEFT);
+		// Draw simple background
+		drawSimpleBackground();
 		
 		// Handle controller input
 		readPad(0);
